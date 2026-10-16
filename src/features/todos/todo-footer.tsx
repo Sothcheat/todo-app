@@ -2,30 +2,30 @@ import { Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type TodoFooterProps = {
-  activeCount: number;
-  completedCount: number;
-  onClearCompleted: () => void;
+  remainingCount: number;
+  doneCount: number;
+  onClearDone: () => void;
 };
 
 export function TodoFooter({
-  activeCount,
-  completedCount,
-  onClearCompleted,
+  remainingCount,
+  doneCount,
+  onClearDone,
 }: TodoFooterProps) {
   return (
     <div className="flex w-full flex-wrap items-center justify-between gap-2">
       <span className="text-muted-foreground text-sm">
-        {activeCount} {activeCount === 1 ? "item" : "items"} left
+        {remainingCount} {remainingCount === 1 ? "item" : "items"} left
       </span>
       <Button
         variant="ghost"
         size="sm"
-        disabled={completedCount === 0}
-        onClick={onClearCompleted}
+        disabled={doneCount === 0}
+        onClick={onClearDone}
         className="-mr-2.5"
       >
         <Trash2Icon data-icon="inline-start" />
-        Clear completed
+        Clear done
       </Button>
     </div>
   );

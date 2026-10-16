@@ -1,91 +1,65 @@
 import { useState } from "react";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAppState } from "@/hooks/use-app-state";
 import { AddTodo } from "./add-todo";
 import { FilterTabs } from "./filter-tabs";
 import { TodoFooter } from "./todo-footer";
 import { TodoList } from "./todo-list";
-import type { Filter, Todo } from "./types";
+import type { Filter } from "./types";
 
 export function TodoApp() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const { todos: todosState, account } = useAppState();
+  const { todos, addTodo, renameTodo, setStatus, deleteTodo, clearDone } =
+    todosState;
   const [filter, setFilter] = useState<Filter>("all");
 
-  const visibleTodos = todos.filter((todo) => {
-    switch (filter) {
-      case "active":
-        return !todo.completed;
-      case "completed":
-        return todo.completed;
-      case "all":
-        return true;
-      default:
-        return true;
-    }
-  });
+  const visibleTodos =
+    filter === "all" ? todos : todos.filter((todo) => todo.status === filter);
 
-  const activeCount = todos.filter((todo) => !todo.completed).length;
-  const completedCount = todos.length - activeCount;
-
-  // handler
-
-  const addTodo = (text: string) => {
-    setTodos((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), text, completed: false },
-    ]);
-  };
-
-  const toggleTodo = (id: string) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
-      ),
-    );
-  };
-
-  const deleteTodo = (id: string) => {
-    setTodos((prev) => prev.filter((todo) => todo.id !== id));
-  };
-
-  const clearCompleted = () => {
-    setTodos((prev) => prev.filter((todo) => !todo.completed));
+  const counts: Record<Filter, number> = {
+    all: todos.length,
+    todo: todos.filter((todo) => todo.status === "todo").length,
+    "in-progress": todos.filter((todo) => todo.status === "in-progress").length,
+    done: todos.filter((todo) => todo.status === "done").length,
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Todos</CardTitle>
+        <CardTitle>{account.name}&apos;s todos</CardTitle>
         <CardDescription>
           {todos.length === 0
             ? "Nothing on your list yet."
-            : `${completedCount} of ${todos.length} completed`}
+            : `${counts.done} of ${todos.length} done`}
         </CardDescription>
-        <CardAction>
-          <FilterTabs filter={filter} onFilterChange={setFilter} />
-        </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <AddTodo onAdd={addTodo} />
+        <FilterTabs
+          filter={filter}
+          counts={counts}
+          onFilterChange={setFilter}
+        />
         <TodoList
           todos={visibleTodos}
           filter={filter}
-          onToggle={toggleTodo}
+          onRename={renameTodo}
+          onStatusChange={setStatus}
           onDelete={deleteTodo}
         />
       </CardContent>
       <CardFooter>
         <TodoFooter
-          activeCount={activeCount}
-          completedCount={completedCount}
-          onClearCompleted={clearCompleted}
+          remainingCount={todos.length - counts.done}
+          doneCount={counts.done}
+          onClearDone={clearDone}
         />
       </CardFooter>
     </Card>

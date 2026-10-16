@@ -2,6 +2,13 @@
 
 A React + TypeScript app covering lifted state, effects with cleanup, data fetching with four UI states, and client-side routing.
 
+## Features
+
+- **Todos with a title and a status** — each todo is `{ id, title, status }`, where status is **To Do**, **In Progress** or **Done**.
+- **Full CRUD in local state only** (no backend) — create, list and filter by status, edit the title, change the status, delete, and clear done. All of it lives in `useState` inside `src/features/todos/use-todos.ts`.
+- **Username and account section** — the header shows the current user's avatar and `@username`, and `/account` shows the profile (name, username, email, bio) with an editable form and a per-status todo summary.
+- **Lifted state** — todos and the account live in `AppLayout` and reach pages through the router's outlet context, so they survive navigating between pages. (Reloading the browser resets them, since nothing is persisted.)
+
 **Repository:** `https://github.com/Sothcheat/todo-app.git` — the app runs from `main`.
 
 ## Stack
@@ -26,9 +33,10 @@ pnpm dev        # http://localhost:5173
 | Path         | Page                                                       |
 | ------------ | ---------------------------------------------------------- |
 | `/`          | Redirects to `/todos`                                      |
-| `/todos`     | Todo app — add, toggle, delete, filter, clear completed    |
+| `/todos`     | Todo app — add, edit, set status, delete, filter, clear done |
 | `/users`     | User directory fetched from JSONPlaceholder                |
 | `/users/:id` | User detail — `id` from `useParams` drives the fetch       |
+| `/account`   | Current user's profile — view and edit, todo summary       |
 | `*`          | 404 catch-all                                              |
 
 Navigation uses `NavLink` / `Link`, so page changes never reload the browser.
@@ -43,7 +51,7 @@ The GitHub link above, with the app running from `main`.
 
 Provided separately in the attached zip:
 
-1. **Todos** — filtering between All / Active / Completed, and clearing completed todos.
+1. **Todos** — setting statuses, editing a title, filtering between All / To Do / In Progress / Done, and clearing done todos.
 2. **Directory** — `/users` showing the loading skeleton, then the loaded list.
 3. **Direct link** — a `/users/:id` URL (e.g. `/users/3`) opened directly in a new tab.
 4. **404** — a garbage URL (e.g. `/asdf`) hitting the catch-all page.
