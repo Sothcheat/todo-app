@@ -1,4 +1,6 @@
+import { AlertCircleIcon } from "lucide-react";
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -7,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAppState } from "@/hooks/use-app-state";
 import { AddTodo } from "./add-todo";
 import { FilterTabs } from "./filter-tabs";
@@ -16,8 +19,16 @@ import type { Filter } from "./types";
 
 export function TodoApp() {
   const { todos: todosState, account } = useAppState();
-  const { todos, addTodo, renameTodo, setStatus, deleteTodo, clearDone } =
-    todosState;
+  const {
+    todos,
+    loading,
+    error,
+    addTodo,
+    renameTodo,
+    setStatus,
+    deleteTodo,
+    clearDone,
+  } = todosState;
   const [filter, setFilter] = useState<Filter>("all");
 
   const visibleTodos =
@@ -35,9 +46,11 @@ export function TodoApp() {
       <CardHeader>
         <CardTitle>{account.name}&apos;s todos</CardTitle>
         <CardDescription>
-          {todos.length === 0
-            ? "Nothing on your list yet."
-            : `${counts.done} of ${todos.length} done`}
+          {loading
+            ? "Loading your list…"
+            : todos.length === 0
+              ? "Nothing on your list yet."
+              : `${counts.done} of ${todos.length} done`}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -47,13 +60,24 @@ export function TodoApp() {
           counts={counts}
           onFilterChange={setFilter}
         />
-        <TodoList
-          todos={visibleTodos}
-          filter={filter}
-          onRename={renameTodo}
-          onStatusChange={setStatus}
-          onDelete={deleteTodo}
-        />
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertTitle>Couldn&apos;t reach the todo API</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {loading ? (
+          <TodoListSkeleton />
+        ) : (
+          <TodoList
+            todos={visibleTodos}
+            filter={filter}
+            onRename={renameTodo}
+            onStatusChange={setStatus}
+            onDelete={deleteTodo}
+          />
+        )}
       </CardContent>
       <CardFooter>
         <TodoFooter
@@ -63,5 +87,19 @@ export function TodoApp() {
         />
       </CardFooter>
     </Card>
+  );
+}
+
+function TodoListSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <ul className="flex flex-col divide-y" aria-busy="true">
+      {Array.from({ length: rows }, (_, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static placeholders
+        <li key={i} className="flex items-center gap-3 py-3">
+          <Skeleton className="h-8 w-28" />
+          <Skeleton className="h-4 flex-1" />
+        </li>
+      ))}
+    </ul>
   );
 }
