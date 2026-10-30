@@ -1,6 +1,7 @@
-import { MailIcon, PencilIcon, UserIcon } from "lucide-react";
+import { AlertCircleIcon, MailIcon, PencilIcon, UserIcon } from "lucide-react";
 import { type ReactNode, type SubmitEvent, useState } from "react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,12 +16,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Account } from "@/features/account/types";
+import { useAccount, useAuth } from "@/features/auth/auth-provider";
 import { statuses } from "@/features/todos/types";
-import { initials } from "@/features/users/user-views";
+import { initials, RoleBadge } from "@/features/users/user-views";
 import { useAppState } from "@/hooks/use-app-state";
 
 export function AccountPage() {
-  const { account, setAccount, todos } = useAppState();
+  const { todos } = useAppState();
+  const account = useAccount();
+  const { saveAccount } = useAuth();
   const [editing, setEditing] = useState(false);
 
   return (
@@ -28,8 +32,8 @@ export function AccountPage() {
       {editing ? (
         <ProfileForm
           account={account}
-          onSave={(next) => {
-            setAccount(next);
+          onSave={async (next) => {
+            await saveAccount(next);
             setEditing(false);
           }}
           onCancel={() => setEditing(false)}
@@ -44,10 +48,10 @@ export function AccountPage() {
               <CardTitle>{account.name}</CardTitle>
               <CardDescription>@{account.username}</CardDescription>
             </div>
+            <RoleBadge role={account.role} className="ml-auto" />
             <Button
               variant="outline"
               size="sm"
-              className="ml-auto"
               onClick={() => setEditing(true)}
             >
               <PencilIcon data-icon="inline-start" />
@@ -96,32 +100,43 @@ export function AccountPage() {
 
 type ProfileFormProps = {
   account: Account;
-  onSave: (account: Account) => void;
+  // Rejects with the API's message (e.g. username taken); the form shows it.
+  onSave: (account: Account) => Promise<void>;
   onCancel: () => void;
 };
 
 function ProfileForm({ account, onSave, onCancel }: ProfileFormProps) {
   // Edit a draft copy; the real account only changes on Save.
   const [draft, setDraft] = useState(account);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const name = draft.name.trim();
   const username = draft.username.trim().replace(/^@/, "");
   const usernameValid = /^[\w.-]+$/.test(username);
-  const canSave = name !== "" && usernameValid;
+  const canSave = name !== "" && usernameValid && !saving;
 
   function update(field: keyof Account, value: string) {
     setDraft((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSave) return;
-    onSave({
-      name,
-      username,
-      email: draft.email.trim(),
-      bio: draft.bio.trim(),
-    });
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave({
+        ...draft,
+        name,
+        username,
+        email: draft.email.trim(),
+        bio: draft.bio.trim(),
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setSaving(false);
+    }
   }
 
   return (
@@ -129,9 +144,7 @@ function ProfileForm({ account, onSave, onCancel }: ProfileFormProps) {
       <form onSubmit={handleSubmit} className="contents">
         <CardHeader>
           <CardTitle>Edit profile</CardTitle>
-          <CardDescription>
-            Changes are kept in local state only.
-          </CardDescription>
+          <CardDescription>Changes are saved to your account.</CardDescription>
           <CardAction>
             <Avatar size="lg">
               <AvatarFallback>{initials(name || "?")}</AvatarFallback>
@@ -139,6 +152,12 @@ function ProfileForm({ account, onSave, onCancel }: ProfileFormProps) {
           </CardAction>
         </CardHeader>
         <CardContent className="grid gap-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircleIcon />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <Field id="name" label="Name">
             <Input
               id="name"
@@ -181,7 +200,7 @@ function ProfileForm({ account, onSave, onCancel }: ProfileFormProps) {
             Cancel
           </Button>
           <Button type="submit" disabled={!canSave}>
-            Save
+            {saving ? "Saving…" : "Save"}
           </Button>
         </CardFooter>
       </form>

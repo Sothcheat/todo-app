@@ -1,13 +1,12 @@
+// "admin" can manage every user and todo; "user" only their own.
+export type Role = "user" | "admin";
+
+// The fields of GET /profile the app uses.
 export type Account = {
+  userId: string;
   name: string;
   username: string;
   email: string;
   bio: string;
-};
-
-export const defaultAccount: Account = {
-  name: "Sothcheat Bunna",
-  username: "sothcheat",
-  email: "sothcheat@example.com",
-  bio: "Learning React before moving on to NestJS.",
+  role: Role;
 };

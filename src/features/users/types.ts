@@ -1,13 +1,12 @@
-// Shape of https://jsonplaceholder.typicode.com/users (fields we use).
+import type { Role } from "@/features/account/types";
+
+// A row of GET /users (admin only), flattened: name and bio come from its profile.
 export type User = {
-  id: number;
+  id: string;
   name: string;
   username: string;
   email: string;
-  phone: string;
-  website: string;
-  company: { name: string; catchPhrase: string };
-  address: { street: string; suite: string; city: string; zipcode: string };
+  bio: string;
+  role: Role;
+  createdAt: string;
 };
-
-export const USERS_API = "https://jsonplaceholder.typicode.com/users";

@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAccount } from "@/features/auth/auth-provider";
 import { useAppState } from "@/hooks/use-app-state";
 import { AddTodo } from "./add-todo";
 import { FilterTabs } from "./filter-tabs";
@@ -18,7 +19,8 @@ import { TodoList } from "./todo-list";
 import type { Filter } from "./types";
 
 export function TodoApp() {
-  const { todos: todosState, account } = useAppState();
+  const { todos: todosState } = useAppState();
+  const account = useAccount();
   const {
     todos,
     loading,

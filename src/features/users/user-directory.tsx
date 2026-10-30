@@ -6,7 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { USERS_API, type User } from "./types";
+import { fetchUsers } from "./api";
+import type { User } from "./types";
 import { UserEmpty, UserError, UserList, UserListSkeleton } from "./user-views";
 
 export function UserDirectory() {
@@ -16,12 +17,9 @@ export function UserDirectory() {
 
   useEffect(() => {
     let cancelled = false;
-    const fetchUsers = async () => {
+    const loadUsers = async () => {
       try {
-        const res = await fetch(USERS_API);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const data: User[] = await res.json();
+        const data = await fetchUsers();
         if (!cancelled) setUsers(data);
       } catch (err) {
         if (!cancelled)
@@ -32,7 +30,7 @@ export function UserDirectory() {
         if (!cancelled) setLoading(false);
       }
     };
-    fetchUsers();
+    loadUsers();
 
     return () => {
       cancelled = true;
@@ -53,7 +51,7 @@ export function UserDirectory() {
         <CardDescription>
           {users.length > 0
             ? `${users.length} ${users.length === 1 ? "person" : "people"} — select someone to view their profile.`
-            : "Browse everyone in the directory."}
+            : "Everyone with an account."}
         </CardDescription>
       </CardHeader>
       <CardContent>{renderContent()}</CardContent>

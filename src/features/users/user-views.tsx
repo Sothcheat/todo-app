@@ -3,6 +3,7 @@ import { Link } from "react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Empty,
   EmptyDescription,
@@ -11,6 +12,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Role } from "@/features/account/types";
 import type { User } from "./types";
 
 export function initials(name: string) {
@@ -20,6 +22,23 @@ export function initials(name: string) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+export function RoleBadge({
+  role,
+  className,
+}: {
+  role: Role;
+  className?: string;
+}) {
+  return (
+    <Badge
+      variant={role === "admin" ? "default" : "secondary"}
+      className={className}
+    >
+      {role === "admin" ? "Admin" : "User"}
+    </Badge>
+  );
 }
 
 /** State 1: loading */
@@ -85,6 +104,7 @@ export function UserList({ users }: { users: User[] }) {
                 {user.email}
               </span>
             </div>
+            <RoleBadge role={user.role} />
             <ChevronRightIcon className="size-4 text-muted-foreground" />
           </Link>
         </li>
